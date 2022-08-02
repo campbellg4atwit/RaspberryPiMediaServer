@@ -20,7 +20,7 @@ def get_videos():
   videos = []
   for root, dirs, files in os.walk(vid_path):
     for file in files:
-      if file.endswith('.mp4'):
+      if "compressed_" in file:
         videos.append(root+'/'+str(file))
 
   return videos
@@ -29,7 +29,6 @@ def search_videos(search):
   videos = []
   for root, dirs, files in os.walk(vid_path):
     for file in files:
-      if file.endswith('.mp4'):
         if "compressed_" in file:
           if search in file:
             videos.append(root+'/'+str(file))
@@ -89,5 +88,7 @@ def compress_video(video_full_path, output_file_name, target_size):
 
 
 if __name__ == "__main__":
-  server_socket.listen(5)
-  print("LISTENING AT:",socket_address)
+  server_socket.listen(1)
+  print("LISTENING AT:", socket_address)
+  while True:
+    pass
