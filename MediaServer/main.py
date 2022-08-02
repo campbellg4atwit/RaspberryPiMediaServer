@@ -1,5 +1,4 @@
 import socket, ffmpeg, os, pickle, struct
-from ffmpeg_videostream import VideoStream
 
 # This is to get the directory that the program
 # is currently running in.
@@ -37,8 +36,8 @@ def search_videos(search):
 
 def streamVideo(video_name):
     client_socket,addr = server_socket.accept()
-    video = VideoStream(vid_path + video_name)
-    video.open_stream()
+    video = ffmpeg.input(vid_path + video_name)
+    video.run()
     while True:
       eof, frame = video.read()
       a = pickle.dumps(frame)
