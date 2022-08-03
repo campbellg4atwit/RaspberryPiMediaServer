@@ -43,7 +43,6 @@ def download_video(fileItem):
 
 ## Function that compresses the downloaded video
 def compress_video(video_full_path, output_file_name, target_size):
-    # Reference: https://en.wikipedia.org/wiki/Bit_rate#Encoding_bit_rate
     min_audio_bitrate = 32000
     max_audio_bitrate = 256000
 
@@ -74,7 +73,7 @@ def compress_video(video_full_path, output_file_name, target_size):
                   ).overwrite_output().run()
 
 
-##Page that plays the video
+## Page that plays the video
 @app.route('/play', methods=['GET','POST'])
 def play():
   return jsonify(videoTitle=session.get("videoTitle"))
@@ -114,7 +113,7 @@ def browse():
     videos.sort()
     return jsonify(videos=videos)      
 
-##Default page that redirects to general browsing of videos
+## Default page that redirects to general browsing of videos
 @app.route('/')
 def home():
     return redirect(url_for('browse'))
