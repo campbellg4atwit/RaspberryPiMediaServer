@@ -13,6 +13,7 @@ app.secret_key = "S-E-C-R-E-T-K-E-Y"
 app.config['UPLOAD_FOLDER'] = vid_path
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
+## Function that returns a list of all of the video titles downloaded
 def get_videos():
   videos = []
   for root, dirs, files in os.walk(vid_path):
@@ -22,6 +23,7 @@ def get_videos():
 
   return videos
 
+## Function that returns a list of all of the video titles downloaded using key words as a filter
 def search_videos(search):
   videos = []
   for root, dirs, files in os.walk(vid_path):
@@ -32,6 +34,7 @@ def search_videos(search):
 
   return videos
 
+## Function that downloads a file given
 def download_video(fileItem):
   if fileItem.filename:
     fn = secure_filename(fileItem.filename)
@@ -39,6 +42,7 @@ def download_video(fileItem):
     fileItem.save()
     compress_video(vid_path + fn, vid_path + "compressed_" + fn, 50 * 1000)
 
+## Function that compresses the downloaded video
 def compress_video(video_full_path, output_file_name, target_size):
     # Reference: https://en.wikipedia.org/wiki/Bit_rate#Encoding_bit_rate
     min_audio_bitrate = 32000
@@ -71,10 +75,12 @@ def compress_video(video_full_path, output_file_name, target_size):
                   ).overwrite_output().run()
 
 
+##Page that plays the video
 @app.route('/play', methods=['GET','POST'])
 def play():
   return jsonify(videoTitle=session.get("videoTitle"))
 
+## Page When sending videos to media server
 @app.route('video_send', methods=['GET', 'POST'])
 def send():
     if 'file' not in request.files:
@@ -89,21 +95,27 @@ def send():
       flash('Video successfully uploaded')
       return jsonify(filename=file.filename)
 
+## Page to feed into video element to show the mp4 file
 @app.route('/display/<filename>')
 def display_video(filename):
 	#print('display_video filename: ' + filename)
 	return redirect(url_for('static', filename=vid_path + filename), code=301)
 
+## Buffer page that dictates which video you picked from /browse
 @app.route('/video_pick', methods=['GET', 'POST'])
 def choose():
     if request.method == 'POST':
       session["videoTitle"] = request.form["video"]
       return redirect(url_for('play'))
 
+## Page where you can view a list of videos and choose which one you want to watch
 @app.route('/browse', methods=['GET', 'POST'])
 def browse():
-    return jsonify(videos=get_videos())      
+    videos = get_videos()
+    videos.sort()
+    return jsonify(videos=videos)      
 
+##Default page that redirects to general browsing of videos
 @app.route('/')
 def home():
     return redirect(url_for('browse'))
