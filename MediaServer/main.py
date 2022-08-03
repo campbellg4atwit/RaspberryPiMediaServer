@@ -1,6 +1,7 @@
 import ffmpeg, os, pickle, struct, cv2, pyaudio
 from flask import Flask, jsonify, redirect, url_for, request, session, Blueprint, flash
 import re
+from werkzeug.utils import secure_filename
 
 # This is to get the directory that the program
 # is currently running in.
@@ -8,6 +9,9 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 vid_path = dir_path + "/Videos/"
 
 app = Flask(__name__)
+app.secret_key = "S-E-C-R-E-T-K-E-Y"
+app.config['UPLOAD_FOLDER'] = vid_path
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
 def get_videos():
   videos = []
@@ -30,9 +34,9 @@ def search_videos(search):
 
 def download_video(fileItem):
   if fileItem.filename:
-    fn = os.path.basename(fileItem.filename)
-    with open(vid_path + fn, 'wb') as code:
-      code.write(fileItem.file.read())
+    fn = secure_filename(fileItem.filename)
+    fn = os.path.join(app.config['UPLOAD_FOLDER'], fn)
+    fileItem.save()
     compress_video(vid_path + fn, vid_path + "compressed_" + fn, 50 * 1000)
 
 def compress_video(video_full_path, output_file_name, target_size):
@@ -69,7 +73,6 @@ def compress_video(video_full_path, output_file_name, target_size):
 
 @app.route('/play', methods=['GET','POST'])
 def play():
-  
   return jsonify(videoTitle=session.get("videoTitle"))
 
 @app.route('video_send', methods=['GET', 'POST'])
@@ -83,8 +86,7 @@ def send():
       return redirect(request.url)
     else:
       download_video(file)
-      #print('upload_video filename: ' + filename)
-      flash('Video successfully uploaded and displayed below')
+      flash('Video successfully uploaded')
       return jsonify(filename=file.filename)
 
 @app.route('/display/<filename>')
