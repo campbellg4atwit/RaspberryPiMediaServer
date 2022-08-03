@@ -1,26 +1,20 @@
-import socket, ffmpeg, os, pickle, struct
+import ffmpeg, os, pickle, struct, cv2, pyaudio
+from flask import Flask, jsonify, redirect, url_for, request, session, Blueprint, flash
+import re
 
 # This is to get the directory that the program
 # is currently running in.
 dir_path = os.path.dirname(os.path.realpath(__file__))
 vid_path = dir_path + "/Videos/"
 
-
-server_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-
-host_name  = socket.gethostname()
-host_ip = socket.gethostbyname(host_name)
-port = 9999
-socket_address = (host_ip,port)
-server_socket.bind(socket_address)
-
+app = Flask(__name__)
 
 def get_videos():
   videos = []
   for root, dirs, files in os.walk(vid_path):
     for file in files:
       if "compressed_" in file:
-        videos.append(root+'/'+str(file))
+        videos.append(str(file))
 
   return videos
 
@@ -30,22 +24,9 @@ def search_videos(search):
     for file in files:
         if "compressed_" in file:
           if search in file:
-            videos.append(root+'/'+str(file))
+            videos.append(str(file))
 
   return videos
-
-def streamVideo(video_name):
-    client_socket,addr = server_socket.accept()
-    video = ffmpeg.input(vid_path + video_name)
-    video.run()
-    while True:
-      eof, frame = video.read()
-      a = pickle.dumps(frame)
-      message = struct.pack("Q",len(a))+a
-      client_socket.sendall(message)
-      if eof:
-        client_socket.close()
-        break
 
 def download_video(fileItem):
   if fileItem.filename:
@@ -86,8 +67,44 @@ def compress_video(video_full_path, output_file_name, target_size):
                   ).overwrite_output().run()
 
 
+@app.route('/play', methods=['GET','POST'])
+def play():
+  
+  return jsonify(videoTitle=session.get("videoTitle"))
+
+@app.route('video_send', methods=['GET', 'POST'])
+def send():
+    if 'file' not in request.files:
+      flash('No file part')
+      return redirect(request.url)
+    file = request.files['file']
+    if file.filename == '':
+      flash('No image selected for uploading')
+      return redirect(request.url)
+    else:
+      download_video(file)
+      #print('upload_video filename: ' + filename)
+      flash('Video successfully uploaded and displayed below')
+      return jsonify(filename=file.filename)
+
+@app.route('/display/<filename>')
+def display_video(filename):
+	#print('display_video filename: ' + filename)
+	return redirect(url_for('static', filename=vid_path + filename), code=301)
+
+@app.route('/video_pick', methods=['GET', 'POST'])
+def choose():
+    if request.method == 'POST':
+      session["videoTitle"] = request.form["video"]
+      return redirect(url_for('play'))
+
+@app.route('/browse', methods=['GET', 'POST'])
+def browse():
+    return jsonify(videos=get_videos())      
+
+@app.route('/')
+def home():
+    return redirect(url_for('browse'))
+
 if __name__ == "__main__":
-  server_socket.listen(1)
-  print("LISTENING AT:", socket_address)
-  while True:
-    pass
+  app.run(threaded=True, debug=True)
