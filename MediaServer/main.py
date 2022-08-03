@@ -1,6 +1,5 @@
-import ffmpeg, os, pickle, struct, cv2, pyaudio
-from flask import Flask, jsonify, redirect, url_for, request, session, Blueprint, flash
-import re
+import ffmpeg, os
+from flask import Flask, jsonify, redirect, url_for, request, session, flash
 from werkzeug.utils import secure_filename
 
 # This is to get the directory that the program
