@@ -96,7 +96,6 @@ def send():
 ## Page to feed into video element to show the mp4 file
 @app.route('/display/<filename>')
 def display_video(filename):
-	#print('display_video filename: ' + filename)
 	return redirect(url_for('static', filename=vid_path + filename), code=301)
 
 ## Buffer page that dictates which video you picked from /browse
