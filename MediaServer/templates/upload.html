@@ -1,0 +1,26 @@
+<html>
+    <body>
+        <p>
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <ul>
+                {% for message in messages %}
+                <li>{{ message }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+        </p>
+        <form method="post" action="/video_send" enctype="multipart/form-data">
+            <dl>
+                <p>
+                    <input type="file" name="file" autocomplete="off" accept=".mp4" required>
+                </p>
+            </dl>
+            <p>
+                <input type="submit" value="Upload">
+                <br><a href="{{url_for('browse')}}"><label>Browse Files</label></a>
+            </p>
+        </form>
+    </body>
+</html>

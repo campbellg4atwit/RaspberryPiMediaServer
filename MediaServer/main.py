@@ -79,7 +79,12 @@ def play():
   return render_template('watch.html', videoTitle=session.get("videoTitle"))
 
 ## Page When sending videos to media server
-@app.route('/video_send', methods=['GET', 'POST'])
+@app.route('/video_send')
+def send_page():
+  return render_template('upload.html')
+
+## Page When sending videos to media server
+@app.route('/video_send', methods=['POST'])
 def send():
     if 'file' not in request.files:
       flash('No file part')

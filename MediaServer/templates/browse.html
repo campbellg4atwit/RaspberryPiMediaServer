@@ -1,0 +1,16 @@
+<html>
+    <body>
+        <form action='/video_pick' method='POST'>
+            {% if videos %}
+                {% for video in videos %}
+                    <input type='hidden' value="{{video}}" name='video'/>
+                    <input type='submit' value="{{video}}" />
+                    
+                {% endfor %}
+            {% else %}
+                <div>No Videos Found
+                </div>
+            {% endif %}
+            <br><a href="{{url_for('send')}}"><label>Upload</label></a>
+    </body>
+</html>
