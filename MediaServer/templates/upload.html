@@ -1,26 +1,38 @@
-<html>
-    <body>
-        <p>
-        {% with messages = get_flashed_messages() %}
-            {% if messages %}
-                <ul>
-                {% for message in messages %}
-                <li>{{ message }}</li>
-                {% endfor %}
-                </ul>
-            {% endif %}
-        {% endwith %}
-        </p>
-        <form method="post" action="/video_send" enctype="multipart/form-data">
-            <dl>
-                <p>
-                    <input type="file" name="file" autocomplete="off" accept=".mp4" required>
-                </p>
-            </dl>
-            <p>
-                <input type="submit" value="Upload">
-                <br><a href="{{url_for('browse')}}"><label>Browse Files</label></a>
-            </p>
-        </form>
-    </body>
+<html lang="en">
+<head>
+
+    <meta charset="UTF-8">
+
+    <link rel="stylesheet" 
+     href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.4.0/min/dropzone.min.css"/>
+
+    <link rel="stylesheet" 
+     href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.4.0/min/basic.min.css"/>
+
+    <script type="application/javascript" 
+     src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.4.0/min/dropzone.min.js">
+    </script>
+
+    <title>File Dropper</title>
+</head>
+<body>
+
+<form method="POST" action='/video_send' class="dropzone dz-clickable" 
+      id="dropper" enctype="multipart/form-data">
+</form>
+
+<br><a href="{{url_for('browse')}}"><label>Browse Files</label></a>
+
+<script type="application/javascript">
+    Dropzone.options.dropper = {
+        paramName: 'file',
+        chunking: true,
+        acceptedFiles: '.mp4',
+        forceChunking: true,
+        url: '/video_send',
+        maxFilesize: 1025, // megabytes
+        chunkSize: 1000000 // bytes
+    }
+</script>
+</body>
 </html>

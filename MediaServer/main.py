@@ -1,11 +1,11 @@
 import ffmpeg, os
-from flask import Flask, jsonify, redirect, url_for, request, session, flash, render_template
+from flask import Flask, redirect, url_for, request, session, flash, render_template, make_response
 from werkzeug.utils import secure_filename
 
 # This is to get the directory that the program
 # is currently running in.
 dir_path = os.path.dirname(os.path.realpath(__file__))
-vid_path = dir_path + "static/videos/"
+vid_path = dir_path + "/static/videos/"
 
 app = Flask(__name__)
 app.secret_key = "S-E-C-R-E-T-K-E-Y"
@@ -32,14 +32,6 @@ def search_videos(search):
             videos.append(str(file))
 
   return videos
-
-## Function that downloads a file given
-def download_video(fileItem):
-  if fileItem.filename:
-    fn = secure_filename(fileItem.filename)
-    fn = os.path.join(app.config['UPLOAD_FOLDER'], fn)
-    fileItem.save()
-    compress_video(vid_path + fn, vid_path + "compressed_" + fn, 50 * 1000)
 
 ## Function that compresses the downloaded video
 def compress_video(video_full_path, output_file_name, target_size):
@@ -86,17 +78,47 @@ def send_page():
 ## Page When sending videos to media server
 @app.route('/video_send', methods=['POST'])
 def send():
-    if 'file' not in request.files:
-      flash('No file part')
-      return redirect(request.url)
     file = request.files['file']
-    if file.filename == '':
-      flash('No image selected for uploading')
-      return redirect(request.url)
+
+    save_path = vid_path + secure_filename(file.filename)
+    current_chunk = int(request.form['dzchunkindex'])
+
+    # If the file already exists it's ok if we are appending to it,
+    # but not if it's new file that would overwrite the existing one
+    if os.path.exists(save_path) and current_chunk == 0:
+        # 400 and 500s will tell dropzone that an error occurred and show an error
+        return make_response(('File already exists', 400))
+
+    try:
+        with open(save_path, 'ab') as f:
+            f.seek(int(request.form['dzchunkbyteoffset']))
+            f.write(file.stream.read())
+    except OSError:
+        # log.exception will include the traceback so we can see what's wrong 
+        flash('Could not write to file')
+        return make_response(("Not sure why,"
+                              " but we couldn't write the file to disk", 500))
+
+    total_chunks = int(request.form['dztotalchunkcount'])
+
+    if current_chunk + 1 == total_chunks:
+        # This was the last chunk, the file should be complete and the size we expect
+        if os.path.getsize(save_path) != int(request.form['dztotalfilesize']):
+            flash(f"File {file.filename} was completed, "
+                      f"but has a size mismatch."
+                      f"Was {os.path.getsize(save_path)} but we"
+                      f" expected {request.form['dztotalfilesize']} ")
+            return make_response(('Size mismatch', 500))
+        else:
+            try:
+              compress_video(vid_path + file.filename, vid_path + "compressed_" + file.filename, 50 * 1000)
+            finally:
+              flash(f'File {file.filename} has been uploaded successfully')
     else:
-      download_video(file)
-      flash('Video successfully uploaded')
-      return render_template('upload.html', filename=file.filename)
+        flash(f'Chunk {current_chunk + 1} of {total_chunks} '
+                  f'for file {file.filename} complete')
+
+    return make_response(("Chunk upload successful", 200))
 
 ## Page to feed into video element to show the mp4 file
 @app.route('/display/<filename>')
