@@ -1,4 +1,10 @@
 <html>
+    <head>
+
+        <meta charset="UTF-8">
+
+        <title>Video Browser</title>
+    </head>
     <body>
         <form action='/video_pick' method='POST'>
             {% if videos %}
@@ -12,5 +18,6 @@
                 </div>
             {% endif %}
             <br><a href="{{url_for('send')}}"><label>Upload</label></a>
+        </form>
     </body>
 </html>
