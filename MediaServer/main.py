@@ -1,5 +1,5 @@
-import ffmpeg, os
-from flask import Flask, redirect, url_for, request, session, flash, render_template, make_response
+import ffmpeg, os, re
+from flask import Flask, redirect, url_for, request, session, flash, render_template, make_response, Response
 from werkzeug.utils import secure_filename
 
 # This is to get the directory that the program
@@ -17,8 +17,7 @@ def get_videos():
   videos = []
   for root, dirs, files in os.walk(vid_path):
     for file in files:
-      if "compressed_" in file:
-        videos.append(str(file))
+      videos.append(str(file))
 
   return videos
 
@@ -32,6 +31,23 @@ def search_videos(search):
             videos.append(str(file))
 
   return videos
+
+def get_chunk(byte1=None, byte2=None, filename=""):
+    full_path = vid_path + filename
+    file_size = os.stat(full_path).st_size
+    start = 0
+    
+    if byte1 < file_size:
+        start = byte1
+    if byte2:
+        length = byte2 + 1 - byte1
+    else:
+        length = file_size - start
+
+    with open(full_path, 'rb') as f:
+        f.seek(start)
+        chunk = f.read(length)
+    return chunk, start, length, file_size
 
 ## Function that compresses the downloaded video
 def compress_video(video_full_path, output_file_name, target_size):
@@ -120,10 +136,24 @@ def send():
 
     return make_response(("Chunk upload successful", 200))
 
-## Page to feed into video element to show the mp4 file
-@app.route('/display/<filename>')
+@app.route('/video/<filename>')
 def display_video(filename):
-	return redirect(url_for('static', filename=vid_path + filename), code=301)
+    range_header = request.headers.get('Range', None)
+    byte1, byte2 = 0, None
+    if range_header:
+        match = re.search(r'(\d+)-(\d*)', range_header)
+        groups = match.groups()
+
+        if groups[0]:
+            byte1 = int(groups[0])
+        if groups[1]:
+            byte2 = int(groups[1])
+       
+    chunk, start, length, file_size = get_chunk(byte1, byte2, filename)
+    resp = Response(chunk, 206, mimetype='video/mp4',
+                      content_type='video/mp4', direct_passthrough=True)
+    resp.headers.add('Content-Range', 'bytes {0}-{1}/{2}'.format(start, start + length - 1, file_size))
+    return resp
 
 ## Buffer page that dictates which video you picked from /browse
 @app.route('/video_pick', methods=['GET', 'POST'])
