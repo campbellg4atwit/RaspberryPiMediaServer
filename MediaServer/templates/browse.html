@@ -1,16 +1,33 @@
+<link rel="stylesheet" href="\static\css\browse.css">
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
 <html>
+    <head>
+
+        <meta charset="UTF-8">
+
+        <title>Video Browser</title>
+    </head>
     <body>
-        <form action='/video_pick' method='POST'>
-            {% if videos %}
-                {% for video in videos %}
-                    <input type='hidden' value="{{video}}" name='video'/>
-                    <input type='submit' value="{{video}}" />
-                    
-                {% endfor %}
-            {% else %}
-                <div>No Videos Found
-                </div>
-            {% endif %}
-            <br><a href="{{url_for('send')}}"><label>Upload</label></a>
+        <div class="topnav w3-bar w3-white w3-border-bottom w3-xlarge">
+            <a href="../" class="w3-bar-item w3-button w3-text-red w3-hover-red"><b>AIO Media Server</b></a>
+            <a href="{{url_for('send')}}" class="w3-bar-item w3-button w3-right w3-light-grey w3-mobile">Upload</a>
+              </div>
+        </div>
+        <br>
+        <div class="content">
+            <h2 style="text-align: center">Videos</h2>
+            <form action='/video_pick' method='POST'>
+                {% if videos %}
+                    {% for video in videos %}
+                        <input type='hidden' value="{{video}}" name='video'/>
+                        <input type='submit' value="{{video}}" />
+                        
+                    {% endfor %}
+                {% else %}
+                    <div>No Videos Found
+                    </div>
+                {% endif %}
+            </form>
+        </div>
     </body>
 </html>

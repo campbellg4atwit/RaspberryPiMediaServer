@@ -1,7 +1,23 @@
+<link rel="stylesheet" href="\static\css\watch.css">
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css"
+<html>
+<head>
+    <title>Video Player</title>
+
+</head>
 <body>
-    <div style="margin: 10px auto;">
-        <video autoplay="autoplay" controls="controls" preload="preload">
-            <source src="{{ url_for('display_video', filename=videoTitle) }}" type="video/mp4"></source>
-        </video>
+    <div class="topnav w3-bar w3-white w3-border-bottom w3-xlarge">
+        <a href="../" class="w3-bar-item w3-button w3-text-red w3-hover-red"><b>AIO Media Server</b></a>
+        <a href="{{url_for('send')}}" class="w3-bar-item w3-button w3-right w3-light-grey w3-mobile">Upload</a>
+        <a href="{{url_for('browse')}}" class="w3-bar-item w3-button w3-right w3-light-grey w3-mobile">Browse</a>
+    </div>
+    <br>
+    <div class="content">
+
+            <video autoplay="autoplay" width="1280" height="720" controls="controls" preload="preload">
+                <source src="{{ url_for('display_video', filename=videoTitle) }}" type="video/mp4"></source>
+            </video>
+
     </div>
 </body>
+</html>
