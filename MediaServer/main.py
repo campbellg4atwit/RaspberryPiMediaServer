@@ -1,11 +1,11 @@
 import ffmpeg, os
-from flask import Flask, jsonify, redirect, url_for, request, session, flash
+from flask import Flask, jsonify, redirect, url_for, request, session, flash, render_template
 from werkzeug.utils import secure_filename
 
 # This is to get the directory that the program
 # is currently running in.
 dir_path = os.path.dirname(os.path.realpath(__file__))
-vid_path = dir_path + "/Videos/"
+vid_path = dir_path + "static/videos/"
 
 app = Flask(__name__)
 app.secret_key = "S-E-C-R-E-T-K-E-Y"
@@ -43,8 +43,8 @@ def download_video(fileItem):
 
 ## Function that compresses the downloaded video
 def compress_video(video_full_path, output_file_name, target_size):
-    min_audio_bitrate = 32000
-    max_audio_bitrate = 256000
+    min_audio_bitrate = 32000 #4Kbits/s
+    max_audio_bitrate = 256000 #32Kbits/s
 
     probe = ffmpeg.probe(video_full_path)
     # Video duration, in s.
@@ -76,10 +76,10 @@ def compress_video(video_full_path, output_file_name, target_size):
 ## Page that plays the video
 @app.route('/play', methods=['GET','POST'])
 def play():
-  return jsonify(videoTitle=session.get("videoTitle"))
+  return render_template('watch.html', videoTitle=session.get("videoTitle"))
 
 ## Page When sending videos to media server
-@app.route('video_send', methods=['GET', 'POST'])
+@app.route('/video_send', methods=['GET', 'POST'])
 def send():
     if 'file' not in request.files:
       flash('No file part')
@@ -91,7 +91,7 @@ def send():
     else:
       download_video(file)
       flash('Video successfully uploaded')
-      return jsonify(filename=file.filename)
+      return render_template('upload.html', filename=file.filename)
 
 ## Page to feed into video element to show the mp4 file
 @app.route('/display/<filename>')
@@ -110,7 +110,7 @@ def choose():
 def browse():
     videos = get_videos()
     videos.sort()
-    return jsonify(videos=videos)      
+    return render_template('browse.html', videos=videos)
 
 ## Default page that redirects to general browsing of videos
 @app.route('/')
