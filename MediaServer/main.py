@@ -17,7 +17,8 @@ def get_videos():
   videos = []
   for root, dirs, files in os.walk(vid_path):
     for file in files:
-      videos.append(str(file))
+      if "compressed_" in file:
+        videos.append(str(file))
 
   return videos
 
