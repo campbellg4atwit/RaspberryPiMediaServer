@@ -68,7 +68,7 @@ def compress_video(og_vid_path, output_file_name, target_size):
     duration = float(probe['format']['duration'])
     # Audio bitrate, in bps.
     audio_bitrate = float(next((s for s in probe['streams'] if s['codec_type'] == 'audio'), None)['bit_rate'])
-    # Target total bitrate, in bps.
+    # Target total bitrate, in bps. Required Bits / (GB*Seconds)
     target_total_bitrate = (target_size * 1024 * 8) / (1.073741824 * duration)
 
     # Target audio bitrate, in bps
@@ -180,12 +180,14 @@ def display_video(filename):
 @app.route('/video_pick', methods=['GET', 'POST'])
 def choose():
     if request.method == 'POST':
-      session["videoTitle"] = request.form["video"]
+      title = request.form["id"]
+      session["videoTitle"] = str(title)
       return redirect(url_for('play'))
 
 ## Page where you can view a list of videos and choose which one you want to watch
 @app.route('/browse', methods=['GET', 'POST'])
 def browse():
+    session.clear()
     videos = get_videos()
     videos.sort()
     return render_template('browse.html', videos=videos)
